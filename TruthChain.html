@@ -1,0 +1,264 @@
+<!--
+  TRUTHCHAIN — index.html
+  ------------------------
+  This is the STRUCTURE of the page (the content and layout).
+  Styling (colors, spacing, fonts) lives in style.css.
+  Interactivity (buttons, demos, hashing) lives in script.js.
+
+  The page has these main parts, in order:
+  1. <header>   - the top navigation bar
+  2. #hero      - the big introduction at the top
+  3. #how       - "how it works" 3-step explainer
+  4. #publish   - demo: publish an article
+  5. #verify    - demo: verify text against the ledger
+  6. #photo     - demo: check if a photo looks AI-generated
+  7. #detect    - demo: scan text for fake-news signals
+  8. #explorer  - demo: browse published records
+  9. <footer>   - small note at the bottom
+
+  Tip: search this file for id="publish" (etc.) to jump to a section.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TruthChain — Verify what you read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="TruthChain.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap navrow">
+    <div class="brand">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5.2 3.6 9.4 9 10 5.4-.6 9-4.8 9-10V6l-9-4Z" stroke="#F6F3EC" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12.2l2.4 2.4L16 9.6" stroke="#D9A441" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      TruthChain
+    </div>
+    <nav class="navlinks">
+      <a href="#publish">Publish</a>
+      <a href="#verify">Verify</a>
+      <a href="#photo">Photo</a>
+      <a href="#detect">Detect</a>
+      <a href="#explorer">Explorer</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:20px;">
+      <div class="status"><span class="dot"></span> Network Active</div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Tamper-proof verification</div>
+      <h1>Trust what<br>you <em>read.</em></h1>
+      <p>TruthChain fingerprints articles and photos with SHA-256 and keeps an immutable ledger of every record — so anyone can check whether a story is the one that was actually published, or something quietly altered.</p>
+      <div class="hero-ctas">
+        <a href="#publish" class="btn btn-primary">Publish an article</a>
+        <a href="#verify" class="btn btn-ghost">Verify something</a>
+      </div>
+    </div>
+    <div class="fp-card">
+      <div class="fp-head"><span>Fingerprint match</span><span id="heroTime" class="mono">—</span></div>
+      <div class="fp-line fp-a"><div class="fp-fill" id="heroHashA">computing…</div></div>
+      <div class="fp-line fp-b"><div class="fp-fill" id="heroHashB">computing…</div></div>
+      <div class="fp-match"><span class="sq"></span> Original and stored record are identical</div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">How it works</div>
+      <h2>Three steps, one guarantee</h2>
+      <p>The order matters — hashing happens the moment a record is created, storage happens once, and verification can happen forever after.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="num">01 / HASH</div><h3>Every record gets a fingerprint</h3><p>On publish, the exact bytes of the article or photo run through SHA-256, producing a fixed 64-character fingerprint unique to that content.</p></div>
+      <div class="step"><div class="num">02 / STORE</div><h3>The fingerprint is locked in</h3><p>The hash, publisher name, and timestamp are written to the ledger. Nothing about the original content is stored — only its fingerprint.</p></div>
+      <div class="step"><div class="num">03 / VERIFY</div><h3>Anyone can re-check it</h3><p>Paste the same content back in and TruthChain re-hashes it live. One changed character produces a completely different fingerprint.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PUBLISH -->
+<section id="publish">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Demo 1 — Publish</div>
+      <h2>Publish an article to the ledger</h2>
+      <p>Type or paste an article below. TruthChain computes a real SHA-256 fingerprint in your browser and adds it to the ledger used by Verify and Explorer.</p>
+    </div>
+    <div class="panel">
+      <div class="row2">
+        <div class="field">
+          <label for="pubPublisher">Publisher name</label>
+          <input type="text" id="pubPublisher" placeholder="e.g. Ridgeline Daily" value="Ridgeline Daily">
+        </div>
+        <div class="field">
+          <label for="pubTitle">Headline</label>
+          <input type="text" id="pubTitle" placeholder="e.g. City council approves new transit line" value="City council approves new transit line">
+        </div>
+      </div>
+      <div class="field">
+        <label for="pubBody">Article text</label>
+        <textarea id="pubBody" rows="5">After eighteen months of hearings, the city council voted 6-1 Tuesday to approve funding for the Ridgeline light-rail extension, which will connect the downtown core to the eastern suburbs by 2029.</textarea>
+      </div>
+      <button class="btn-sm" id="pubBtn">Publish article</button>
+      <div class="result" id="pubResult" style="display:none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- VERIFY -->
+<section id="verify">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Demo 2 — Verify</div>
+      <h2>Check whether content matches the ledger</h2>
+      <p>Two ways to see it work: check any text against published records, or watch how a single edited character changes everything.</p>
+    </div>
+    <div class="panel">
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-vtab="check">Check against ledger</button>
+        <button class="demo-tab" data-vtab="avalanche">One-character test</button>
+      </div>
+
+      <div id="vtab-check">
+        <div class="field">
+          <label for="verInput">Paste article text to verify</label>
+          <textarea id="verInput" rows="5"></textarea>
+        </div>
+        <div class="presets">
+          <button class="chip" data-verify-preset="match">Load: unedited copy</button>
+          <button class="chip" data-verify-preset="tampered">Load: edited copy</button>
+        </div>
+        <button class="btn-sm" id="verBtn">Verify against ledger</button>
+        <div class="result" id="verResult" style="display:none;"></div>
+      </div>
+
+      <div id="vtab-avalanche" style="display:none;">
+        <p class="hint" style="margin-bottom:16px;">Original: <em>"The vote passed by a 6-1 margin."</em> Edit just one character below and watch the fingerprint change completely.</p>
+        <div class="field">
+          <label for="avaInput">Try editing this sentence</label>
+          <input type="text" id="avaInput" value="The vote passed by a 6-1 margin.">
+        </div>
+        <div class="result" style="display:block;">
+          <div class="hashline">Fingerprint: <span id="avaHash" class="hash-short">computing…</span></div>
+          <div class="hint" id="avaCompare">Matches original fingerprint.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO -->
+<section id="photo">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Demo 3 — Photo</div>
+      <h2>Check whether a photo looks AI-generated</h2>
+      <p>TruthChain scans an image for surface-level signals — texture smoothness, noise patterns, and camera metadata — that tend to differ between photographs and synthetic images. This is an illustrative pattern check, not a verified detector, and it can be wrong in both directions.</p>
+    </div>
+    <div class="panel">
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-ptab="single">Scan a photo</button>
+        <button class="demo-tab" data-ptab="compare">Compare two photos</button>
+        <button class="demo-tab" data-ptab="resave">Metadata inspector</button>
+      </div>
+
+      <div id="ptab-single">
+        <div class="dropzone" id="dropSingle">
+          <p>Drop an image here, or click to choose one</p>
+          <div class="small">Analysis happens locally in your browser — nothing is uploaded</div>
+        </div>
+        <input type="file" id="fileSingle" accept="image/*" style="display:none;">
+        <div class="result" id="singleResult" style="display:none;"></div>
+      </div>
+
+      <div id="ptab-compare" style="display:none;">
+        <div class="row2">
+          <div>
+            <div class="dropzone" id="dropA"><p>Photo A</p><div class="small">Click to choose</div></div>
+            <input type="file" id="fileA" accept="image/*" style="display:none;">
+          </div>
+          <div>
+            <div class="dropzone" id="dropB"><p>Photo B</p><div class="small">Click to choose</div></div>
+            <input type="file" id="fileB" accept="image/*" style="display:none;">
+          </div>
+        </div>
+        <div class="result" id="compareResult" style="display:none;"></div>
+      </div>
+
+      <div id="ptab-resave">
+        <div class="dropzone" id="dropResave"><p>Choose a photo to inspect</p><div class="small">Reads basic file and camera-metadata signals only</div></div>
+        <input type="file" id="fileResave" accept="image/*" style="display:none;">
+        <div class="result" id="resaveResult" style="display:none;"></div>
+        <p class="hint">Real camera photos usually carry EXIF metadata (camera model, exposure, sometimes GPS). AI-generated images and screenshots often lack it — but its absence alone doesn't prove an image is fake, since metadata is also stripped by messaging apps and social platforms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DETECT -->
+<section id="detect">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Demo 4 — Detect</div>
+      <h2>Scan for common fake-news signals</h2>
+      <p>A lightweight pattern check — not a verdict. It flags surface signals often seen in misleading content: sensational phrasing, excessive punctuation, and missing sourcing.</p>
+    </div>
+    <div class="panel">
+      <div class="presets">
+        <button class="chip" data-detect-preset="clean">Load: sober reporting</button>
+        <button class="chip" data-detect-preset="clickbait">Load: clickbait headline</button>
+        <button class="chip" data-detect-preset="satire">Load: unsourced rumor</button>
+      </div>
+      <div class="field">
+        <label for="detInput">Paste text to scan</label>
+        <textarea id="detInput" rows="5" placeholder="Paste a headline or article body…"></textarea>
+      </div>
+      <button class="btn-sm" id="detBtn">Run detection</button>
+      <div class="result" id="detResult" style="display:none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPLORER -->
+<section id="explorer" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Demo 5 — Explorer</div>
+      <h2>Browse the ledger</h2>
+      <p>Every record TruthChain has stored, searchable by publisher or fingerprint. Anything you publish above appears here immediately.</p>
+    </div>
+    <div class="panel">
+      <div class="search-row">
+        <input type="text" id="explSearch" placeholder="Search by publisher, title, or hash…">
+        <button class="chip" data-filter="all" style="background:var(--paper); color:var(--ink); border-color:var(--paper);">All</button>
+        <button class="chip" data-filter="article">Articles</button>
+        <button class="chip" data-filter="photo">Photos</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Type</th><th>Title / File</th><th>Publisher</th><th>Fingerprint</th><th>Time</th></tr>
+        </thead>
+        <tbody id="explBody"></tbody>
+      </table>
+      <div id="explDetail" class="result" style="display:none; margin-top:18px;"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p class="wrap">TRUTHCHAIN · HASHES COMPUTED LOCALLY IN YOUR BROWSER · NOTHING SHOWN HERE IS UPLOADED ANYWHERE</p>
+</footer>
+<script src="script.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
