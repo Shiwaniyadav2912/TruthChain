@@ -6,15 +6,20 @@
   Interactivity (buttons, demos, hashing) lives in script.js.
 
   The page has these main parts, in order:
-  1. <header>   - the top navigation bar
-  2. #hero      - the big introduction at the top
-  3. #how       - "how it works" 3-step explainer
-  4. #publish   - demo: publish an article
-  5. #verify    - demo: verify text against the ledger
-  6. #photo     - demo: check if a photo looks AI-generated
-  7. #detect    - demo: scan text for fake-news signals
-  8. #explorer  - demo: browse published records
-  9. <footer>   - small note at the bottom
+  1. <header>          - top nav (role-aware) + login/register button
+  2. #authModal         - login / register modal (created hidden, opened by JS)
+  3. #hero              - the big introduction at the top
+  4. #how                - "how it works" 3-step explainer
+  5. #publisherPortal     - apply to become a verified publisher
+  6. #publish             - Publisher Dashboard: register a new article
+                          (gated — only visible/usable to approved publishers)
+  7. #adminDashboard       - approve/reject publishers, view all users
+                          (gated — admin only)
+  8. #verify                - public article verification + ISRO tampering demo
+  9. #photo                  - check if a photo looks AI-generated
+  10. #detect                 - scan text for fake-news signals
+  11. #explorer                - "Blockchain Records" registry browser
+  12. <footer>                 - demo-mode / security note
 
   Tip: search this file for id="publish" (etc.) to jump to a section.
 -->
@@ -26,7 +31,7 @@
 <title>TruthChain — Verify what you read</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="TruthChain.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -39,17 +44,101 @@
       TruthChain
     </div>
     <nav class="navlinks">
-      <a href="#publish">Publish</a>
       <a href="#verify">Verify</a>
       <a href="#photo">Photo</a>
       <a href="#detect">Detect</a>
-      <a href="#explorer">Explorer</a>
+      <a href="#explorer">Blockchain Records</a>
+      <a href="#publisherPortal" data-nav="guest,user">Publisher Portal</a>
+      <a href="#publish" data-nav="publisher">Register Article</a>
+      <a href="#adminDashboard" data-nav="admin">Admin Dashboard</a>
     </nav>
-    <div style="display:flex; align-items:center; gap:20px;">
-      <div class="status"><span class="dot"></span> Network Active</div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div class="status"><span class="dot"></span> Demo Blockchain Mode</div>
+      <div id="authArea"></div>
     </div>
   </div>
 </header>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal" style="display:none;">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-authtab="login">Log in</button>
+        <button class="demo-tab" data-authtab="register">Register</button>
+      </div>
+      <button class="modal-close" id="authClose">&times;</button>
+    </div>
+
+    <div id="authtab-login">
+      <div class="field">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" placeholder="e.g. admin">
+      </div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" placeholder="••••••••">
+      </div>
+      <button class="btn-sm" id="loginBtn">Log in</button>
+      <div class="result" id="loginResult" style="display:none;"></div>
+      <p class="hint">Demo accounts — admin: <code class="mono">admin / admin123</code> &nbsp;·&nbsp; verified publisher: <code class="mono">isro / isro1234</code></p>
+    </div>
+
+    <div id="authtab-register" style="display:none;">
+      <div class="row2">
+        <div class="field">
+          <label for="regUser">Choose a username</label>
+          <input type="text" id="regUser" placeholder="e.g. jane_reader">
+        </div>
+        <div class="field">
+          <label for="regPass">Choose a password</label>
+          <input type="password" id="regPass" placeholder="At least 6 characters">
+        </div>
+      </div>
+      <div class="field">
+        <label>Account type</label>
+        <div class="presets">
+          <button class="chip role-chip active" data-role="user">Normal user</button>
+          <button class="chip role-chip" data-role="publisher">Apply as publisher</button>
+        </div>
+      </div>
+
+      <div id="regPublisherFields" style="display:none;">
+        <div class="row2">
+          <div class="field">
+            <label for="regOrgName">Publisher / organization name</label>
+            <input type="text" id="regOrgName" placeholder="e.g. Ridgeline Daily">
+          </div>
+          <div class="field">
+            <label for="regOrgEmail">Official email</label>
+            <input type="text" id="regOrgEmail" placeholder="editor@ridgelinedaily.com">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="regOrgSite">Website</label>
+            <input type="text" id="regOrgSite" placeholder="https://ridgelinedaily.com">
+          </div>
+          <div class="field">
+            <label for="regOrgType">Publisher type</label>
+            <input type="text" id="regOrgType" placeholder="e.g. Newspaper, Agency, Independent">
+          </div>
+        </div>
+        <div class="field">
+          <label for="regOrgDesc">Description</label>
+          <textarea id="regOrgDesc" rows="2" placeholder="What does this outlet publish?"></textarea>
+        </div>
+        <div class="field">
+          <label for="regOrgDoc">Verification document (prototype only — not actually uploaded)</label>
+          <input type="file" id="regOrgDoc">
+        </div>
+      </div>
+
+      <button class="btn-sm" id="registerBtn">Create account</button>
+      <div class="result" id="registerResult" style="display:none;"></div>
+    </div>
+  </div>
+</div>
 
 <section class="hero">
   <div class="wrap hero-grid">
@@ -86,31 +175,105 @@
   </div>
 </section>
 
-<!-- PUBLISH -->
-<section id="publish">
+<!-- PUBLISHER PORTAL -->
+<section id="publisherPortal">
   <div class="wrap">
     <div class="sec-head">
-      <div class="sec-eyebrow">Demo 1 — Publish</div>
-      <h2>Publish an article to the ledger</h2>
-      <p>Type or paste an article below. TruthChain computes a real SHA-256 fingerprint in your browser and adds it to the ledger used by Verify and Explorer.</p>
+      <div class="sec-eyebrow">Publisher Portal</div>
+      <h2>Become a verified publisher</h2>
+      <p>Verified publishers can register articles on the TruthChain ledger. Applications are reviewed by an administrator before publishing access is granted.</p>
+    </div>
+    <div class="panel" id="portalPanel">
+      <!-- filled in by script.js depending on login state -->
+    </div>
+  </div>
+</section>
+
+<!-- PUBLISH -->
+<section id="publish">
+  <div class="gate-lock" id="publishLock">
+    <div class="wrap">
+      <div class="panel" style="text-align:center;">
+        <div class="badge warn"><span class="sq"></span>Publisher access required</div>
+        <p style="color:var(--slate-light); max-width:46ch; margin:10px auto 18px;">Only verified publishers can register articles on the blockchain registry. Log in with a verified publisher account, or apply above.</p>
+        <a href="#publisherPortal" class="btn btn-ghost">Apply to become a publisher</a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap" id="publishUnlocked" style="display:none;">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Publisher Dashboard</div>
+      <h2>Register a new article</h2>
+      <p>The article content is hashed with SHA-256 in your browser, then that fingerprint — not the article text itself — is registered on the blockchain registry.</p>
     </div>
     <div class="panel">
       <div class="row2">
         <div class="field">
-          <label for="pubPublisher">Publisher name</label>
-          <input type="text" id="pubPublisher" placeholder="e.g. Ridgeline Daily" value="Ridgeline Daily">
+          <label for="pubTitle">Article title</label>
+          <input type="text" id="pubTitle" placeholder="e.g. City council approves new transit line" value="City council approves new transit line">
         </div>
         <div class="field">
-          <label for="pubTitle">Headline</label>
-          <input type="text" id="pubTitle" placeholder="e.g. City council approves new transit line" value="City council approves new transit line">
+          <label for="pubCategory">Category</label>
+          <input type="text" id="pubCategory" placeholder="e.g. Local news" value="Local news">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="pubDate">Publication date</label>
+          <input type="text" id="pubDate" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="field">
+          <label for="pubUrl">Article URL</label>
+          <input type="text" id="pubUrl" placeholder="https://example.com/article">
         </div>
       </div>
       <div class="field">
-        <label for="pubBody">Article text</label>
+        <label for="pubBody">Article content</label>
         <textarea id="pubBody" rows="5">After eighteen months of hearings, the city council voted 6-1 Tuesday to approve funding for the Ridgeline light-rail extension, which will connect the downtown core to the eastern suburbs by 2029.</textarea>
       </div>
-      <button class="btn-sm" id="pubBtn">Publish article</button>
+      <button class="btn-sm" id="pubBtn">Generate hash &amp; register on blockchain</button>
       <div class="result" id="pubResult" style="display:none;"></div>
+    </div>
+
+    <div class="sec-head" style="margin-top:44px;">
+      <div class="sec-eyebrow">My articles</div>
+      <h2>Articles you've registered</h2>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Article ID</th><th>Title</th><th>SHA-256</th><th>Timestamp</th><th>Status</th></tr></thead>
+        <tbody id="myArticlesBody"></tbody>
+      </table>
+      <p class="hint" id="myArticlesEmpty">You haven't registered any articles yet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN DASHBOARD -->
+<section id="adminDashboard" style="display:none;">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Admin Dashboard</div>
+      <h2>Publisher applications</h2>
+      <p>Approve or reject publisher applications. Approved accounts can register articles on the blockchain registry.</p>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Organization</th><th>Email</th><th>Website</th><th>Applied</th><th>Status</th><th></th></tr></thead>
+        <tbody id="pendingPublishersBody"></tbody>
+      </table>
+      <p class="hint" id="pendingPublishersEmpty">No pending applications.</p>
+    </div>
+
+    <div class="sec-head" style="margin-top:44px;">
+      <div class="sec-eyebrow">All users</div>
+      <h2>Registered accounts</h2>
+    </div>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Username</th><th>Role</th><th>Publisher status</th><th>Created</th></tr></thead>
+        <tbody id="allUsersBody"></tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -119,14 +282,14 @@
 <section id="verify">
   <div class="wrap">
     <div class="sec-head">
-      <div class="sec-eyebrow">Demo 2 — Verify</div>
-      <h2>Check whether content matches the ledger</h2>
-      <p>Two ways to see it work: check any text against published records, or watch how a single edited character changes everything.</p>
+      <div class="sec-eyebrow">Public Article Verification</div>
+      <h2>Check whether content matches the blockchain registry</h2>
+      <p>Paste any article text — TruthChain hashes it and searches the registry for a matching record. Or try the tampering demo to see what a single changed sentence does to the result.</p>
     </div>
     <div class="panel">
       <div class="demo-tabs">
-        <button class="demo-tab active" data-vtab="check">Check against ledger</button>
-        <button class="demo-tab" data-vtab="avalanche">One-character test</button>
+        <button class="demo-tab active" data-vtab="check">Verify against registry</button>
+        <button class="demo-tab" data-vtab="avalanche">Tampering demo (ISRO)</button>
       </div>
 
       <div id="vtab-check">
@@ -135,23 +298,25 @@
           <textarea id="verInput" rows="5"></textarea>
         </div>
         <div class="presets">
-          <button class="chip" data-verify-preset="match">Load: unedited copy</button>
-          <button class="chip" data-verify-preset="tampered">Load: edited copy</button>
+          <button class="chip" data-verify-preset="match">Load: ISRO demo article (original)</button>
+          <button class="chip" data-verify-preset="tampered">Load: ISRO demo article (modified)</button>
         </div>
-        <button class="btn-sm" id="verBtn">Verify against ledger</button>
+        <button class="btn-sm" id="verBtn">Verify against registry</button>
         <div class="result" id="verResult" style="display:none;"></div>
       </div>
 
       <div id="vtab-avalanche" style="display:none;">
-        <p class="hint" style="margin-bottom:16px;">Original: <em>"The vote passed by a 6-1 margin."</em> Edit just one character below and watch the fingerprint change completely.</p>
+        <p class="hint" style="margin-bottom:16px;">This uses the demo publisher <strong>ISRO</strong>'s registered article, <em>"ISRO Successfully Launches Chandrayaan-3."</em> Load the original for a match, or the modified version to see a mismatch.</p>
+        <div class="presets">
+          <button class="chip" data-ava-preset="match">Load original</button>
+          <button class="chip" data-ava-preset="tampered">Load modified (one sentence changed)</button>
+        </div>
         <div class="field">
-          <label for="avaInput">Try editing this sentence</label>
-          <input type="text" id="avaInput" value="The vote passed by a 6-1 margin.">
+          <label for="avaInput">Article text</label>
+          <textarea id="avaInput" rows="4"></textarea>
         </div>
-        <div class="result" style="display:block;">
-          <div class="hashline">Fingerprint: <span id="avaHash" class="hash-short">computing…</span></div>
-          <div class="hint" id="avaCompare">Matches original fingerprint.</div>
-        </div>
+        <button class="btn-sm" id="avaBtn">Check against ISRO's registered hash</button>
+        <div class="result" id="avaResult" style="display:none;"></div>
       </div>
     </div>
   </div>
@@ -162,17 +327,106 @@
   <div class="wrap">
     <div class="sec-head">
       <div class="sec-eyebrow">Demo 3 — Photo</div>
-      <h2>Check whether a photo looks AI-generated</h2>
-      <p>TruthChain scans an image for surface-level signals — texture smoothness, noise patterns, and camera metadata — that tend to differ between photographs and synthetic images. This is an illustrative pattern check, not a verified detector, and it can be wrong in both directions.</p>
+      <h2>Verify, compare, and register photos</h2>
+      <p>Check an image's SHA-256 fingerprint against TruthChain's registered image records, compare visual similarity to catch resized or re-compressed copies, and scan for surface-level AI-generation signals. Cryptographic matching and AI/perceptual analysis are always shown separately — never combined into one score.</p>
     </div>
+
+    <!-- IMAGE DETECTION DASHBOARD -->
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="sec-eyebrow" style="margin-bottom:16px;">Image Detection Dashboard</div>
+      <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:6px; overflow:hidden;">
+        <div style="background:var(--ink-700); padding:16px;"><div class="mono" style="font-size:10.5px; color:var(--slate); text-transform:uppercase; letter-spacing:.06em;">Checked</div><div style="font-size:26px; font-weight:600; margin-top:4px;" id="imgStatTotal">0</div></div>
+        <div style="background:var(--ink-700); padding:16px;"><div class="mono" style="font-size:10.5px; color:var(--verify); text-transform:uppercase; letter-spacing:.06em;">Authentic</div><div style="font-size:26px; font-weight:600; margin-top:4px; color:var(--verify);" id="imgStatAuthentic">0</div></div>
+        <div style="background:var(--ink-700); padding:16px;"><div class="mono" style="font-size:10.5px; color:var(--amber); text-transform:uppercase; letter-spacing:.06em;">Modified</div><div style="font-size:26px; font-weight:600; margin-top:4px; color:var(--amber);" id="imgStatModified">0</div></div>
+        <div style="background:var(--ink-700); padding:16px;"><div class="mono" style="font-size:10.5px; color:var(--tamper); text-transform:uppercase; letter-spacing:.06em;">Unverified</div><div style="font-size:26px; font-weight:600; margin-top:4px; color:var(--tamper);" id="imgStatUnverified">0</div></div>
+        <div style="background:var(--ink-700); padding:16px;"><div class="mono" style="font-size:10.5px; color:var(--slate); text-transform:uppercase; letter-spacing:.06em;">Registered</div><div style="font-size:26px; font-weight:600; margin-top:4px;" id="imgStatRegistered">0</div></div>
+      </div>
+      <table style="margin-top:18px;">
+        <thead><tr><th>Image</th><th>Publisher</th><th>Hash</th><th>Similarity</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="imageChecksBody"></tbody>
+      </table>
+      <p class="hint" id="imageChecksEmpty">No images checked yet — run a verification below to see it appear here.</p>
+    </div>
+
     <div class="panel">
       <div class="demo-tabs">
-        <button class="demo-tab active" data-ptab="single">Scan a photo</button>
-        <button class="demo-tab" data-ptab="compare">Compare two photos</button>
-        <button class="demo-tab" data-ptab="resave">Metadata inspector</button>
+        <button class="demo-tab active" data-ptab="verify">Verify Image</button>
+        <button class="demo-tab" data-ptab="register">Register Image</button>
+        <button class="demo-tab" data-ptab="compare">Compare Images</button>
+        <button class="demo-tab" data-ptab="scan">AI Signal Scan</button>
+        <button class="demo-tab" data-ptab="resave">Metadata Inspector</button>
       </div>
 
-      <div id="ptab-single">
+      <!-- VERIFY IMAGE -->
+      <div id="ptab-verify">
+        <div class="dropzone" id="dropVerify">
+          <p>Drop an image here, or click to choose one</p>
+          <div class="small">Hashing and comparison happen locally in your browser — nothing is uploaded</div>
+        </div>
+        <input type="file" id="fileVerify" accept="image/*" style="display:none;">
+
+        <div class="presets" style="margin-top:16px;">
+          <span class="hint" style="margin:0 4px 0 0;">Demo mode:</span>
+          <button class="chip" data-img-demo="original">Demo 1 — Original <span class="tag article" style="margin-left:4px;">DEMO DATA</span></button>
+          <button class="chip" data-img-demo="resaved">Demo 2 — Resized/Compressed <span class="tag article" style="margin-left:4px;">DEMO DATA</span></button>
+          <button class="chip" data-img-demo="different">Demo 3 — Different Image <span class="tag article" style="margin-left:4px;">DEMO DATA</span></button>
+        </div>
+
+        <div class="result" id="verifyResult" style="display:none;"></div>
+      </div>
+
+      <!-- REGISTER IMAGE (publisher-gated) -->
+      <div id="ptab-register" style="display:none;">
+        <div class="gate-lock" id="imgRegisterLock">
+          <div class="panel" style="text-align:center; background:var(--ink-700);">
+            <div class="badge warn"><span class="sq"></span>Publisher access required</div>
+            <p style="color:var(--slate-light); max-width:46ch; margin:10px auto 18px;">Only verified publishers can register original images on the blockchain registry. Log in with a verified publisher account, or apply from the Publisher Portal.</p>
+            <a href="#publisherPortal" class="btn btn-ghost">Apply to become a publisher</a>
+          </div>
+        </div>
+        <div id="imgRegisterUnlocked" style="display:none;">
+          <div class="dropzone" id="dropRegisterImg"><p>Choose the original image to register</p><div class="small">Click to choose</div></div>
+          <input type="file" id="fileRegisterImg" accept="image/*" style="display:none;">
+          <div class="result" id="registerImgPreview" style="display:none;"></div>
+          <div class="row2" style="margin-top:16px;">
+            <div class="field"><label for="imgTitle">Image title</label><input type="text" id="imgTitle" placeholder="e.g. Chandrayaan-3 launch pad photo"></div>
+            <div class="field"><label for="imgPubDate">Publication date</label><input type="text" id="imgPubDate" placeholder="YYYY-MM-DD"></div>
+          </div>
+          <div class="field"><label for="imgSourceUrl">Source URL</label><input type="text" id="imgSourceUrl" placeholder="https://example.com/photo"></div>
+          <div class="field"><label for="imgDesc">Description</label><textarea id="imgDesc" rows="2" placeholder="What does this image show?"></textarea></div>
+          <button class="btn-sm" id="imgRegisterBtn">Generate hash &amp; register on blockchain</button>
+          <div class="result" id="imgRegisterResult" style="display:none;"></div>
+
+          <div class="sec-head" style="margin-top:36px; margin-bottom:16px;">
+            <div class="sec-eyebrow">My registered images</div>
+          </div>
+          <table>
+            <thead><tr><th>Image ID</th><th>Title</th><th>SHA-256</th><th>Timestamp</th><th>Status</th></tr></thead>
+            <tbody id="myImagesBody"></tbody>
+          </table>
+          <p class="hint" id="myImagesEmpty">You haven't registered any images yet.</p>
+        </div>
+      </div>
+
+      <!-- COMPARE IMAGES -->
+      <div id="ptab-compare" style="display:none;">
+        <p class="hint" style="margin-bottom:14px;">Upload two images to compare. TruthChain reports both an AI-likelihood signal score and a perceptual similarity score for each — kept separate on purpose.</p>
+        <div class="row2">
+          <div>
+            <div class="dropzone" id="dropA"><p>Photo A — original / registered</p><div class="small">Click to choose</div></div>
+            <input type="file" id="fileA" accept="image/*" style="display:none;">
+          </div>
+          <div>
+            <div class="dropzone" id="dropB"><p>Photo B — submitted</p><div class="small">Click to choose</div></div>
+            <input type="file" id="fileB" accept="image/*" style="display:none;">
+          </div>
+        </div>
+        <div class="result" id="compareResult" style="display:none;"></div>
+      </div>
+
+      <!-- AI SIGNAL SCAN -->
+      <div id="ptab-scan" style="display:none;">
+        <p class="hint" style="margin-bottom:14px;">Scans for surface-level signals — texture smoothness, noise patterns, and camera metadata — that tend to differ between photographs and synthetic images. This is an illustrative pattern check, not a verified detector, and it can be wrong in both directions.</p>
         <div class="dropzone" id="dropSingle">
           <p>Drop an image here, or click to choose one</p>
           <div class="small">Analysis happens locally in your browser — nothing is uploaded</div>
@@ -181,21 +435,8 @@
         <div class="result" id="singleResult" style="display:none;"></div>
       </div>
 
-      <div id="ptab-compare" style="display:none;">
-        <div class="row2">
-          <div>
-            <div class="dropzone" id="dropA"><p>Photo A</p><div class="small">Click to choose</div></div>
-            <input type="file" id="fileA" accept="image/*" style="display:none;">
-          </div>
-          <div>
-            <div class="dropzone" id="dropB"><p>Photo B</p><div class="small">Click to choose</div></div>
-            <input type="file" id="fileB" accept="image/*" style="display:none;">
-          </div>
-        </div>
-        <div class="result" id="compareResult" style="display:none;"></div>
-      </div>
-
-      <div id="ptab-resave">
+      <!-- METADATA INSPECTOR -->
+      <div id="ptab-resave" style="display:none;">
         <div class="dropzone" id="dropResave"><p>Choose a photo to inspect</p><div class="small">Reads basic file and camera-metadata signals only</div></div>
         <input type="file" id="fileResave" accept="image/*" style="display:none;">
         <div class="result" id="resaveResult" style="display:none;"></div>
@@ -229,24 +470,21 @@
   </div>
 </section>
 
-<!-- EXPLORER -->
+<!-- BLOCKCHAIN RECORDS -->
 <section id="explorer" style="border-bottom:none;">
   <div class="wrap">
     <div class="sec-head">
-      <div class="sec-eyebrow">Demo 5 — Explorer</div>
-      <h2>Browse the ledger</h2>
-      <p>Every record TruthChain has stored, searchable by publisher or fingerprint. Anything you publish above appears here immediately.</p>
+      <div class="sec-eyebrow">Blockchain Records</div>
+      <h2>Browse the registry</h2>
+      <p>Every article hash registered by a verified publisher. This is Demo Blockchain Mode — records live in this browser's demo ledger, not a real chain. Click a row for the full record.</p>
     </div>
     <div class="panel">
       <div class="search-row">
         <input type="text" id="explSearch" placeholder="Search by publisher, title, or hash…">
-        <button class="chip" data-filter="all" style="background:var(--paper); color:var(--ink); border-color:var(--paper);">All</button>
-        <button class="chip" data-filter="article">Articles</button>
-        <button class="chip" data-filter="photo">Photos</button>
       </div>
       <table>
         <thead>
-          <tr><th>Type</th><th>Title / File</th><th>Publisher</th><th>Fingerprint</th><th>Time</th></tr>
+          <tr><th>Article ID</th><th>Publisher</th><th>SHA-256 Hash</th><th>Timestamp</th><th>Blockchain Status</th></tr>
         </thead>
         <tbody id="explBody"></tbody>
       </table>
@@ -256,9 +494,9 @@
 </section>
 
 <footer>
-  <p class="wrap">TRUTHCHAIN · HASHES COMPUTED LOCALLY IN YOUR BROWSER · NOTHING SHOWN HERE IS UPLOADED ANYWHERE</p>
+  <p class="wrap">TRUTHCHAIN · DEMO BLOCKCHAIN MODE — NO REAL BLOCKCHAIN NETWORK IS USED · PASSWORDS ARE HASHED CLIENT-SIDE FOR THIS PROTOTYPE ONLY</p>
 </footer>
-<script src="script.js"></script>
+
 <script src="script.js"></script>
 </body>
 </html>
